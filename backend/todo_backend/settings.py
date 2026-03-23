@@ -24,6 +24,8 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-l^4_oi4jtg2*vaz*vx#+654j
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "http://localhost:8080",
