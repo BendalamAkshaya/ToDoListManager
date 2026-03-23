@@ -87,18 +87,24 @@ The system extracts user identity during login and persists it locally. This all
 ## 🌩️ Deployment Guide
 
 ### Frontend (Vercel)
-The React frontend is optimized for **Vercel**:
-1.  Connect your GitHub repository to Vercel.
-2.  Set the Root Directory to `flow-state-tasks/`.
-3.  Add the Environment Variable: `VITE_API_URL` (point this to your deployed backend URL + `/api/tasks/`).
-4.  Vercel will automatically use the `vercel.json` provided for SPA routing.
+The React frontend is hosted on **Vercel**:
+1.  **Repository**: Connected to `ToDoListManager` repo.
+2.  **Root Directory**: Set to `flow-state-tasks/`.
+3.  **Environment Variable**: `VITE_API_URL` set to `https://todolistmanager-production.up.railway.app/api/tasks/`.
+4.  **Live URL**: [https://to-do-list-manager-kappa.vercel.app](https://to-do-list-manager-kappa.vercel.app)
 
-### Backend (Render / Railway / Heroku)
-Since Django requires a persistent database and a server process, we recommend **Render** or **Railway**:
-1.  Deploy the `backend/` directory.
-2.  Ensure `requirements.txt` is installed.
-3.  Set environment variables for `SECRET_KEY` and `ALLOWED_HOSTS`.
-4.  Use a managed PostgreSQL database instead of SQLite for production data persistence.
+### Backend (Railway)
+The Django backend is hosted on **Railway** with a **PostgreSQL** database:
+1.  **Repository**: Connected to `ToDoListManager` repo.
+2.  **Root Directory**: Set to `/backend`.
+3.  **Database**: Managed PostgreSQL instance.
+4.  **Custom Start Command**: `python manage.py collectstatic --no-input && python manage.py migrate && gunicorn todo_backend.wsgi`
+5.  **Environment Variables**:
+    - `SECRET_KEY`: (Secure random string)
+    - `DEBUG`: `False` (for production)
+    - `ALLOWED_HOSTS`: `*`
+    - `CORS_ALLOWED_ORIGINS`: `https://to-do-list-manager-kappa.vercel.app`
+6.  **Live API**: [https://todolistmanager-production.up.railway.app](https://todolistmanager-production.up.railway.app)
 
 ---
 
