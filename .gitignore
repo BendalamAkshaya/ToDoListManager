@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+db.sqlite3
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.parcel-cache
+
+# OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build
+flow-state-tasks/node_modules/
+flow-state-tasks/dist/
+backend/venv/
+
+# Git
+.git
+*/.git

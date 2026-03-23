@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 259 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 196 100% 57%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 259 80% 55%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 259 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 259 80% 96%;
+    --sidebar-accent-foreground: 259 80% 55%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 259 80% 55%;
+
+    /* Custom tokens */
+    --gradient-primary: linear-gradient(135deg, #5f2eea, #2bb7ff);
+    --gradient-card: linear-gradient(135deg, rgba(95,46,234,0.05), rgba(43,183,255,0.05));
+    --gradient-sidebar: linear-gradient(180deg, #fafbff 0%, #f0f0ff 100%);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 4px 12px rgba(95,46,234,0.08), 0 12px 28px rgba(0,0,0,0.06);
+    --shadow-glow: 0 0 20px rgba(95,46,234,0.15);
+
+    --warning: 30 95% 55%;
+    --warning-foreground: 0 0% 100%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --info: 196 100% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --priority-high: 0 84% 60%;
+    --priority-medium: 30 95% 55%;
+    --priority-low: 152 60% 45%;
+
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 259 80% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 196 100% 57%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 96%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 259 80% 62%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 259 80% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 259 40% 15%;
+    --sidebar-accent-foreground: 259 80% 75%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 259 80% 62%;
+
+    --gradient-primary: linear-gradient(135deg, #7c4dff, #40c4ff);
+    --gradient-card: linear-gradient(135deg, rgba(124,77,255,0.08), rgba(64,196,255,0.08));
+    --gradient-sidebar: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(259 30% 10%) 100%);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 6px 16px rgba(0,0,0,0.15);
+    --shadow-card-hover: 0 4px 12px rgba(124,77,255,0.15), 0 12px 28px rgba(0,0,0,0.2);
+    --shadow-glow: 0 0 24px rgba(124,77,255,0.2);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-xl border;
+    background: hsla(var(--card), 0.7);
+  }
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-bg {
+    background: var(--gradient-primary);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
