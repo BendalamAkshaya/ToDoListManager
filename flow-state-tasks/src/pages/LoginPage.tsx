@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL?.replace("/tasks/", "") || "http://localhost:8000";
+      const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/tasks/", "") || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
