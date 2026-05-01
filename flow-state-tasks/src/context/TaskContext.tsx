@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Task, Category, Priority, TaskStatus } from "@/types/task";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, "id" | "createdAt" | "status">) => void;
+  addTask: (task: Omit<Task, "id" | "createdAt" | "status" | "user">) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleComplete: (id: string) => void;
@@ -30,75 +31,63 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 const today = () => new Date().toISOString().split("T")[0];
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/tasks/";
-
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const { token, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   
-  const getHeaders = useCallback(() => {
-    return {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
-    };
-  }, [token]);
-
-  useEffect(() => {
+  const fetchTasks = useCallback(async () => {
     if (!isAuthenticated) {
       setTasks([]);
       return;
     }
+    const { data, error } = await supabase.from('tasks').select('*').order('createdAt', { ascending: false });
+    if (error) {
+      console.error("Error fetching tasks:", error);
+    } else {
+      setTasks(data || []);
+    }
+  }, [isAuthenticated]);
 
-    fetch(API_URL, { headers: getHeaders() })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setTasks(data);
-        }
-      })
-      .catch(err => console.error("Error fetching tasks:", err));
-  }, [isAuthenticated, getHeaders]);
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt" | "status" | "user">) => {
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify(task),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(prev => [data, ...prev]);
-      }
-    } catch (error) {
+    // Determine current user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) return;
+
+    const newTask = {
+        ...task,
+        user_id: userData.user.id
+    };
+
+    const { data, error } = await supabase.from('tasks').insert([newTask]).select().single();
+    if (error) {
       console.error("Error adding task:", error);
+    } else if (data) {
+      setTasks(prev => [data, ...prev]);
     }
-  }, [getHeaders]);
+  }, []);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
-    try {
-      setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t)); // Optimistic
-      await fetch(`${API_URL}${id}/`, {
-        method: "PATCH",
-        headers: getHeaders(),
-        body: JSON.stringify(updates),
-      });
-    } catch (error) {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t)); // Optimistic
+    
+    // In strict mode, some keys might be passed that Supabase doesn't need to change if unchanged,
+    // but a `.update` will correctly map to only those changes.
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+    if (error) {
       console.error("Error updating task:", error);
     }
-  }, [getHeaders]);
+  }, []);
 
   const deleteTask = useCallback(async (id: string) => {
-    try {
-      setTasks(prev => prev.filter(t => t.id !== id)); // Optimistic
-      await fetch(`${API_URL}${id}/`, {
-        method: "DELETE",
-        headers: getHeaders(),
-      });
-    } catch (error) {
+    setTasks(prev => prev.filter(t => t.id !== id)); // Optimistic
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (error) {
       console.error("Error deleting task:", error);
     }
-  }, [getHeaders]);
+  }, []);
 
   const toggleComplete = useCallback(async (id: string) => {
     const task = tasks.find(t => t.id === id);
@@ -111,17 +100,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       return { ...t, status: newStatus, completedAt: completedAt || undefined };
     })); // Optimistic
 
-    try {
-      await fetch(`${API_URL}${id}/`, {
-        method: "PATCH",
-        headers: getHeaders(),
-        // @ts-ignore
-        body: JSON.stringify({ status: newStatus, completedAt }),
-      });
-    } catch (error) {
+    // @ts-ignore - Nullable types correctly handled by supabase
+    const { error } = await supabase.from('tasks').update({ status: newStatus, completedAt }).eq('id', id);
+    if (error) {
       console.error("Error toggling task completion:", error);
     }
-  }, [tasks, getHeaders]);
+  }, [tasks]);
 
   const getTasksByStatus = useCallback((status: TaskStatus) => tasks.filter(t => t.status === status), [tasks]);
   const getTasksByCategory = useCallback((category: Category) => tasks.filter(t => t.category === category), [tasks]);
@@ -129,7 +113,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   const getOverdueTasks = useCallback(() => {
     const now = new Date().toISOString();
-    return tasks.filter(t => t.status === "pending" && t.dueDate < now);
+    return tasks.filter(t => t.status === "pending" && t.dueDate && t.dueDate < now);
   }, [tasks]);
 
   const getTodayTasks = useCallback(() => {

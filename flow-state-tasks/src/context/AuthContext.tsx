@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 interface AuthContextType {
   token: string | null;
@@ -12,41 +13,44 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("taskflow-auth-token"));
-  const [username, setUsername] = useState<string | null>(localStorage.getItem("taskflow-username"));
+  const [token, setToken] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        // The frontend doesn't actually know the username since SimpleJWT only encodes user_id by default.
-        // For simplicity we will fetch it from a custom endpoint, or we can just fetch the username directly during login.
-        // Let's decode the token, see if username is there, or just use "User".
-      } catch (e) {
-        console.error("Invalid token");
-      }
-    } else {
-      setUsername(null);
-    }
-  }, [token]);
+    // Initial fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setToken(session?.access_token || null);
+      setUsername(session?.user?.user_metadata?.username || session?.user?.email || null);
+      setIsLoading(false);
+    });
+
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setToken(session?.access_token || null);
+      setUsername(session?.user?.user_metadata?.username || session?.user?.email || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = useCallback((newToken: string, user: string) => {
-    localStorage.setItem("taskflow-auth-token", newToken);
-    localStorage.setItem("taskflow-username", user);
+    // We keep this to be backward-compatible with any components strictly expecting this signature,
+    // though Supabase handles token persistence internally.
     setToken(newToken);
     setUsername(user);
     navigate("/");
   }, [navigate]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("taskflow-auth-token");
-    localStorage.removeItem("taskflow-username");
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setToken(null);
     setUsername(null);
     navigate("/login");
   }, [navigate]);
 
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <AuthContext.Provider value={{ token, isAuthenticated: !!token, username, login, logout }}>

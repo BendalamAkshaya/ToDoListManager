@@ -1,34 +1,31 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/tasks/", "") || "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/api/token/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
 
-      if (!res.ok) {
-        throw new Error("Invalid username or password");
+      if (signInError) {
+        throw signInError;
       }
 
-      const data = await res.json();
-      login(data.access, username);
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
@@ -44,12 +41,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
